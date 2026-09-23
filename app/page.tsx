@@ -810,8 +810,7 @@ export default function TargetSoloGame() {
 
             <p className="text-[#7A0F1C]/70 max-w-xs mb-10">
               Encadena aciertos para multiplicar
-              tus puntos. La dificultad aumenta
-              cada 20 segundos.
+              tus puntos. 
             </p>
 
             <button
