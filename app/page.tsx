@@ -19,7 +19,11 @@ const MAX_AMMO = 20;
 const BASE_TARGETS = 3;
 const MAX_TARGETS = 4;
 const RANKING_STORAGE_KEY = "target-solo-ranking";
-const DIFFICULTY_RAMP = 20; // sube dificultad cada 20s (antes 15)
+const DIFFICULTY_RAMP = 20; // sube dificultad cada 20s
+
+// Imágenes (colócalas en la carpeta /public)
+const GAME_BG_IMAGE = "/ekeko.png"; // fondo del área de disparo
+const GAME_LOGO = "/logo-caja.webp"; // logo en la parte superior del área de disparo
 
 type Screen = "menu" | "game" | "gameover" | "ranking" | "name";
 type TargetSize = "small" | "medium" | "large";
@@ -55,9 +59,9 @@ interface ShotMark {
 // Configuración por tamaño — TIEMPOS MÁS GENEROSOS
 // ---------------------------------------------------------------------------
 const SIZE_CONFIG: Record<TargetSize, { px: number; points: number; lifespan: number; color: string }> = {
-  large: { px: 96, points: 50, lifespan: 5000, color: "#C81E2C" },   // antes 2800
-  medium: { px: 72, points: 100, lifespan: 4200, color: "#E8455A" },  // antes 2100
-  small: { px: 52, points: 200, lifespan: 3400, color: "#7A0F1C" },   // antes 1500
+  large: { px: 96, points: 50, lifespan: 5000, color: "#C81E2C" },
+  medium: { px: 72, points: 100, lifespan: 4200, color: "#E8455A" },
+  small: { px: 52, points: 200, lifespan: 3400, color: "#7A0F1C" },
 };
 
 // ---------------------------------------------------------------------------
@@ -71,12 +75,12 @@ const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; speedFactor: number
   },
   normal: {
     label: "Normal",
-    speedFactor: 0.92, // antes 0.88
+    speedFactor: 0.92,
     spawnBias: ["large", "medium", "medium", "small", "small"],
   },
   hard: {
     label: "Difícil",
-    speedFactor: 0.82, // antes 0.75
+    speedFactor: 0.82,
     spawnBias: ["medium", "medium", "small", "small", "small"],
   },
 };
@@ -213,7 +217,7 @@ const BTN_GHOST_LIGHT =
   "inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold rounded-full transition-colors duration-200";
 
 // ---------------------------------------------------------------------------
-// Diana visual — con indicador visual de expiración (barra circular)
+// Diana visual
 // ---------------------------------------------------------------------------
 function TargetVisual({ target, onHit, disabled }: { target: Target; onHit: (t: Target) => void; disabled: boolean }) {
   const config = SIZE_CONFIG[target.size];
@@ -333,7 +337,7 @@ export default function TargetSoloGame() {
     return {
       id: idRef.current,
       x: randomInRange(15, 85),
-      y: randomInRange(18, 82),
+      y: randomInRange(24, 82), // mínimo 24 para no nacer debajo del logo
       size,
       bornAt: Date.now(),
       lifespan: config.lifespan * difficultyConfig.speedFactor,
@@ -363,7 +367,7 @@ export default function TargetSoloGame() {
   }, [spawnTarget]);
 
   // ---------------------------------------------------------------------
-  // Mantener dianas vivas (reemplaza expiradas) — intervalo más frecuente
+  // Mantener dianas vivas (reemplaza expiradas)
   // ---------------------------------------------------------------------
   useEffect(() => {
     if (!active || screen !== "game" || timerPaused) return;
@@ -372,7 +376,7 @@ export default function TargetSoloGame() {
         const now = Date.now();
         const alive = prev.filter((t) => now - t.bornAt < t.lifespan);
         const toAdd = Math.max(0, activeTargetCount - alive.length);
-        if (toAdd === 0) return alive; // sin cambios → evita re-render
+        if (toAdd === 0) return alive;
         const added: Target[] = [];
         for (let i = 0; i < toAdd; i++) added.push(spawnTarget());
         return [...alive, ...added];
@@ -555,15 +559,15 @@ export default function TargetSoloGame() {
           <img
             src="logo-caja.webp"
             alt="Caja Huancayo"
-            className="w-full max-w-[180px] h-auto mb-8 drop-shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+            className="w-full max-w-[400px] h-auto mb-8 drop-shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
           />
 
           <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/25 px-4 py-1.5 text-xs font-semibold tracking-wide text-white mb-5 backdrop-blur-sm">
             <IconCrosshair className="w-3.5 h-3.5" />
-            Modo un jugador
+            Modo jugador
           </span>
 
-          <h1 className="font-[family-name:var(--font-display)] text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-3 max-w-md">
+          <h1 className="font-[family-name:var(--font-display)] text-4xl sm:text-5xl font-extrabold text-[#000] leading-tight mb-3 max-w-md">
             Tiro al blanco
           </h1>
           <p className="text-white/75 max-w-xs mb-10">
@@ -596,18 +600,7 @@ export default function TargetSoloGame() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs text-white/70 max-w-md">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#7A0F1C] ring-2 ring-white/30" />
-              <span>Pequeña · 200</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#E8455A] ring-2 ring-white/30" />
-              <span>Mediana · 100</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-[#C81E2C] ring-2 ring-white/30" />
-              <span>Grande · 50</span>
-            </div>
+           
             <div className="flex items-center gap-2">
               <IconFlame className="w-3.5 h-3.5 text-[#FFD700]" />
               <span>Combo hasta ×5</span>
@@ -809,26 +802,33 @@ export default function TargetSoloGame() {
         </div>
       </div>
 
+
+
       {/* Área de juego */}
       <div
         ref={playAreaRef}
         onClick={(e) => handleShoot(e.clientX, e.clientY)}
         className="relative w-full max-w-5xl flex-1 min-h-[62vh] rounded-3xl overflow-hidden cursor-crosshair select-none touch-manipulation"
         style={{
-          background:
-            "radial-gradient(circle at 50% 40%, #2A0A0F 0%, #1A0509 60%, #0F0206 100%)",
-          boxShadow: "0 25px 70px -20px rgba(0,0,0,0.7), inset 0 0 80px rgba(200,30,44,0.15)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          backgroundImage: `url('${GAME_BG_IMAGE}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          boxShadow: "0 25px 70px -20px rgba(0,0,0,0.7)",
+          border: "1px solid rgba(255,255,255,0.15)",
         }}
       >
-        <div
-          className="absolute inset-0 opacity-[0.08] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
+        {/* Overlay para que las dianas se vean bien sobre la imagen */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/30 pointer-events-none" />
+
+        <div>
+       {/* Logo superior */}
+        <img
+          src={GAME_LOGO}
+          alt="Logo"
+          className="absolute top-3 left-1/2 -translate-x-1/2 h-10 sm:h-12 w-auto pointer-events-none select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
         />
+   </div>
+
 
         {targets.map((t) => (
           <TargetVisual
