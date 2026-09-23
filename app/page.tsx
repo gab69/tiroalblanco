@@ -32,7 +32,7 @@ const DIFFICULTY_RAMP = 20;
 // ---------------------------------------------------------------------------
 // Imágenes
 // ---------------------------------------------------------------------------
-const GAME_BG_IMAGE = "/ekeko.png";
+const GAME_BG_IMAGE = "/ekeko.webp";
 const GAME_LOGO = "/logo-caja.webp";
 const GAME_LOGO1 = "/logo-caja1.webp";
 
