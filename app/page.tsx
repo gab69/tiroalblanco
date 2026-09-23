@@ -548,7 +548,12 @@ export default function TargetSoloGame() {
           </button>
 
           <div className="flex items-center gap-6 mt-6">
-            
+            <button
+              onClick={() => setScreen("ranking")}
+              className="text-white/80 hover:text-white text-sm font-medium underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
+            >
+              Ver ranking
+            </button>
             <span className="w-1 h-1 rounded-full bg-white/40" />
             <button
               onClick={toggleFullscreen}
@@ -559,7 +564,13 @@ export default function TargetSoloGame() {
             </button>
           </div>
 
-         
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs text-white/70 max-w-md">
+           
+            <div className="flex items-center gap-2">
+              <IconFlame className="w-3.5 h-3.5 text-[#FFD700]" />
+              <span>Combo hasta ×5</span>
+            </div>
+          </div>
         </div>
 
         <style jsx>{`
@@ -575,7 +586,70 @@ export default function TargetSoloGame() {
     );
   }
 
-  
+  // =====================================================================
+  // PANTALLA: RANKING
+  // =====================================================================
+  if (screen === "ranking") {
+    const podium = ranking.slice(0, 3);
+    const rest = ranking.slice(3);
+    const podiumStyles = [
+      "order-2 bg-gradient-to-b from-white to-[#FFE5E5] text-[#7A0F1C] h-32 border border-[#C81E2C]/20",
+      "order-1 bg-gradient-to-b from-[#FFF5F5] to-[#FFD9D9] text-[#7A0F1C] h-28 border border-[#C81E2C]/15",
+      "order-3 bg-gradient-to-b from-[#FFD9D9] to-[#FFB3B3] text-[#7A0F1C] h-24 border border-[#C81E2C]/15",
+    ];
+
+    return (
+      <div className={`${fontVars} font-[family-name:var(--font-body)] min-h-screen p-6 flex flex-col items-center ${BRAND_BACKDROP}`}>
+        <div className="relative w-full max-w-md flex flex-col items-center pt-4">
+          <IconTrophy className="w-10 h-10 text-white mb-2" />
+          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-white mb-8">Ranking local</h1>
+
+          {ranking.length === 0 ? (
+            <div className="w-full rounded-2xl bg-white/10 border border-white/20 p-8 text-center backdrop-blur-sm">
+              <p className="text-white/85">Aún no hay puntajes. ¡Sé el primero en jugar!</p>
+            </div>
+          ) : (
+            <>
+              {podium.length > 0 && (
+                <div className="flex items-end justify-center gap-3 w-full mb-6">
+                  {podium.map((r, i) => (
+                    <div key={`${r.name}-${i}`} className={`flex-1 flex flex-col items-center rounded-t-2xl px-2 pt-3 pb-2 shadow-lg ${podiumStyles[i]}`}>
+                      <span className="text-xs font-bold opacity-70">#{i + 1}</span>
+                      <span className="font-semibold text-sm truncate w-full text-center">{r.name}</span>
+                      <span className="font-[family-name:var(--font-display)] font-bold">{r.score}</span>
+                      <span className="text-[10px] opacity-70 flex items-center gap-0.5">
+                        <IconFlame className="w-2.5 h-2.5" /> {r.maxCombo}×
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {rest.length > 0 && (
+                <ul className="w-full rounded-2xl bg-white shadow-xl overflow-hidden divide-y divide-black/5">
+                  {rest.map((r, i) => (
+                    <li key={`${r.name}-${i}`} className="flex items-center justify-between px-4 py-3 text-[#1A0A0D]">
+                      <span className="text-sm font-semibold text-[#C81E2C] w-6">#{i + 4}</span>
+                      <span className="flex-1 truncate text-sm font-medium">{r.name}</span>
+                      <span className="text-xs text-[#7A0F1C]/60 w-10 text-right flex items-center justify-end gap-0.5">
+                        <IconFlame className="w-2.5 h-2.5" />{r.maxCombo}
+                      </span>
+                      <span className="font-[family-name:var(--font-display)] font-bold text-sm w-16 text-right">{r.score}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+
+          <button onClick={() => setScreen("menu")} className={`mt-8 px-6 py-2.5 text-sm ${BTN_GHOST_LIGHT}`}>
+            <IconExit className="w-4 h-4 rotate-180" />
+            Volver al menú
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // =====================================================================
   // PANTALLA: GAME OVER
