@@ -18,14 +18,13 @@ const LOW_TIME_THRESHOLD = 10;
 const MAX_AMMO = 20;
 const BASE_TARGETS = 3;
 const MAX_TARGETS = 4;
-const RANKING_STORAGE_KEY = "target-solo-ranking";
 const DIFFICULTY_RAMP = 20; // sube dificultad cada 20s
 
 // Imágenes (colócalas en la carpeta /public)
 const GAME_BG_IMAGE = "/ekeko.png"; // fondo del área de disparo
 const GAME_LOGO = "/logo-caja.webp"; // logo en la parte superior del área de disparo
 
-type Screen = "menu" | "game" | "gameover" | "ranking" | "name";
+type Screen = "menu" | "game" | "gameover";
 type TargetSize = "small" | "medium" | "large";
 type Difficulty = "easy" | "normal" | "hard";
 
@@ -39,14 +38,6 @@ interface Target {
   points: number;
 }
 
-interface RankingEntry {
-  name: string;
-  score: number;
-  accuracy: number;
-  maxCombo: number;
-  date: string;
-}
-
 interface ShotMark {
   id: number;
   x: number;
@@ -56,7 +47,7 @@ interface ShotMark {
 }
 
 // ---------------------------------------------------------------------------
-// Configuración por tamaño — TIEMPOS MÁS GENEROSOS
+// Configuración por tamaño
 // ---------------------------------------------------------------------------
 const SIZE_CONFIG: Record<TargetSize, { px: number; points: number; lifespan: number; color: string }> = {
   large: { px: 96, points: 50, lifespan: 5000, color: "#C81E2C" },
@@ -65,7 +56,7 @@ const SIZE_CONFIG: Record<TargetSize, { px: number; points: number; lifespan: nu
 };
 
 // ---------------------------------------------------------------------------
-// Configuración por dificultad — speedFactor más suave (1.0 = sin cambio)
+// Configuración por dificultad
 // ---------------------------------------------------------------------------
 const DIFFICULTY_CONFIG: Record<Difficulty, { label: string; speedFactor: number; spawnBias: TargetSize[] }> = {
   easy: {
@@ -103,24 +94,6 @@ function getDifficulty(elapsed: number): Difficulty {
   return "hard";
 }
 
-function loadRanking(): RankingEntry[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = localStorage.getItem(RANKING_STORAGE_KEY);
-    return stored ? (JSON.parse(stored) as RankingEntry[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRanking(ranking: RankingEntry[]) {
-  try {
-    localStorage.setItem(RANKING_STORAGE_KEY, JSON.stringify(ranking));
-  } catch {
-    /* ignore */
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Iconos
 // ---------------------------------------------------------------------------
@@ -145,14 +118,6 @@ const IconClock = ({ className = "w-4 h-4" }: IconProps) => (
 const IconStar = ({ className = "w-4 h-4" }: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={iconBase} strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M12 3.5l2.6 5.4 5.9.7-4.3 4.1 1.1 5.9L12 16.8l-5.3 2.8 1.1-5.9-4.3-4.1 5.9-.7z" />
-  </svg>
-);
-
-const IconTrophy = ({ className = "w-6 h-6" }: IconProps) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={iconBase} strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M7 4h10v4a5 5 0 0 1-5 5 5 5 0 0 1-5-5V4Z" />
-    <path d="M7 5H4a3 3 0 0 0 3 4M17 5h3a3 3 0 0 1-3 4" />
-    <path d="M12 13v3m-3 4h6m-3 0v-4" />
   </svg>
 );
 
@@ -267,8 +232,6 @@ export default function TargetSoloGame() {
   const [maxCombo, setMaxCombo] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [active, setActive] = useState(false);
-  const [ranking, setRanking] = useState<RankingEntry[]>([]);
-  const [playerName, setPlayerName] = useState("");
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [timerPaused, setTimerPaused] = useState(false);
@@ -315,17 +278,6 @@ export default function TargetSoloGame() {
     document.addEventListener("fullscreenchange", handler);
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
-
-  // ---------------------------------------------------------------------
-  // Ranking persistente
-  // ---------------------------------------------------------------------
-  useEffect(() => {
-    setRanking(loadRanking());
-  }, []);
-
-  useEffect(() => {
-    saveRanking(ranking);
-  }, [ranking]);
 
   // ---------------------------------------------------------------------
   // Spawn de dianas
@@ -477,31 +429,11 @@ export default function TargetSoloGame() {
   }, [shots]);
 
   // ---------------------------------------------------------------------
-  // Finalizar partida
+  // Finalizar partida (Reiniciar o Volver al menú)
   // ---------------------------------------------------------------------
-  const resetGame = useCallback(() => setScreen("name"), []);
-
-  const submitScore = useCallback(() => {
-    const entry: RankingEntry = {
-      name: playerName.trim() || "Anónimo",
-      score,
-      accuracy,
-      maxCombo,
-      date: new Date().toLocaleString(),
-    };
-    setRanking((prev) => [...prev, entry].sort((a, b) => b.score - a.score).slice(0, 10));
-    setTargets([]);
-    setShots([]);
-    setAmmo(MAX_AMMO);
-    setHits(0);
-    setScore(0);
-    setCombo(0);
-    setMaxCombo(0);
-    setTimeLeft(GAME_DURATION);
-    setActive(false);
-    setPlayerName("");
-    setScreen("menu");
-  }, [playerName, score, accuracy, maxCombo]);
+  const restartGame = useCallback(() => {
+    startGame();
+  }, [startGame]);
 
   const exitToMenu = useCallback(() => {
     setActive(false);
@@ -512,7 +444,6 @@ export default function TargetSoloGame() {
   }, []);
 
   const fontVars = `${sora.variable} ${inter.variable}`;
-
 
   // =====================================================================
   // PANTALLA: MENÚ
@@ -549,13 +480,6 @@ export default function TargetSoloGame() {
 
           <div className="flex items-center gap-6 mt-6">
             <button
-              onClick={() => setScreen("ranking")}
-              className="text-white/80 hover:text-white text-sm font-medium underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
-            >
-              Ver ranking
-            </button>
-            <span className="w-1 h-1 rounded-full bg-white/40" />
-            <button
               onClick={toggleFullscreen}
               className="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors"
             >
@@ -564,13 +488,6 @@ export default function TargetSoloGame() {
             </button>
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs text-white/70 max-w-md">
-           
-            <div className="flex items-center gap-2">
-              <IconFlame className="w-3.5 h-3.5 text-[#FFD700]" />
-              <span>Combo hasta ×5</span>
-            </div>
-          </div>
         </div>
 
         <style jsx>{`
@@ -582,71 +499,6 @@ export default function TargetSoloGame() {
             .animate-\\[fadeUp_0\\.6s_ease-out\\] { animation: none; }
           }
         `}</style>
-      </div>
-    );
-  }
-
-  // =====================================================================
-  // PANTALLA: RANKING
-  // =====================================================================
-  if (screen === "ranking") {
-    const podium = ranking.slice(0, 3);
-    const rest = ranking.slice(3);
-    const podiumStyles = [
-      "order-2 bg-gradient-to-b from-white to-[#FFE5E5] text-[#7A0F1C] h-32 border border-[#C81E2C]/20",
-      "order-1 bg-gradient-to-b from-[#FFF5F5] to-[#FFD9D9] text-[#7A0F1C] h-28 border border-[#C81E2C]/15",
-      "order-3 bg-gradient-to-b from-[#FFD9D9] to-[#FFB3B3] text-[#7A0F1C] h-24 border border-[#C81E2C]/15",
-    ];
-
-    return (
-      <div className={`${fontVars} font-[family-name:var(--font-body)] min-h-screen p-6 flex flex-col items-center ${BRAND_BACKDROP}`}>
-        <div className="relative w-full max-w-md flex flex-col items-center pt-4">
-          <IconTrophy className="w-10 h-10 text-white mb-2" />
-          <h1 className="font-[family-name:var(--font-display)] text-3xl font-bold text-white mb-8">Ranking local</h1>
-
-          {ranking.length === 0 ? (
-            <div className="w-full rounded-2xl bg-white/10 border border-white/20 p-8 text-center backdrop-blur-sm">
-              <p className="text-white/85">Aún no hay puntajes. ¡Sé el primero en jugar!</p>
-            </div>
-          ) : (
-            <>
-              {podium.length > 0 && (
-                <div className="flex items-end justify-center gap-3 w-full mb-6">
-                  {podium.map((r, i) => (
-                    <div key={`${r.name}-${i}`} className={`flex-1 flex flex-col items-center rounded-t-2xl px-2 pt-3 pb-2 shadow-lg ${podiumStyles[i]}`}>
-                      <span className="text-xs font-bold opacity-70">#{i + 1}</span>
-                      <span className="font-semibold text-sm truncate w-full text-center">{r.name}</span>
-                      <span className="font-[family-name:var(--font-display)] font-bold">{r.score}</span>
-                      <span className="text-[10px] opacity-70 flex items-center gap-0.5">
-                        <IconFlame className="w-2.5 h-2.5" /> {r.maxCombo}×
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {rest.length > 0 && (
-                <ul className="w-full rounded-2xl bg-white shadow-xl overflow-hidden divide-y divide-black/5">
-                  {rest.map((r, i) => (
-                    <li key={`${r.name}-${i}`} className="flex items-center justify-between px-4 py-3 text-[#1A0A0D]">
-                      <span className="text-sm font-semibold text-[#C81E2C] w-6">#{i + 4}</span>
-                      <span className="flex-1 truncate text-sm font-medium">{r.name}</span>
-                      <span className="text-xs text-[#7A0F1C]/60 w-10 text-right flex items-center justify-end gap-0.5">
-                        <IconFlame className="w-2.5 h-2.5" />{r.maxCombo}
-                      </span>
-                      <span className="font-[family-name:var(--font-display)] font-bold text-sm w-16 text-right">{r.score}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-
-          <button onClick={() => setScreen("menu")} className={`mt-8 px-6 py-2.5 text-sm ${BTN_GHOST_LIGHT}`}>
-            <IconExit className="w-4 h-4 rotate-180" />
-            Volver al menú
-          </button>
-        </div>
       </div>
     );
   }
@@ -686,11 +538,11 @@ export default function TargetSoloGame() {
             </div>
           </div>
 
-          <button onClick={resetGame} className={`w-full px-6 py-3 mb-3 ${BTN_PRIMARY}`}>
-            Guardar puntaje
+          <button onClick={restartGame} className={`w-full px-6 py-3 mb-3 ${BTN_PRIMARY}`}>
+            Reiniciar
           </button>
           <button
-            onClick={() => setScreen("menu")}
+            onClick={exitToMenu}
             className="w-full text-[#7A0F1C] hover:text-[#C81E2C] px-6 py-2 text-sm font-semibold transition-colors"
           >
             Volver al menú principal
@@ -767,8 +619,6 @@ export default function TargetSoloGame() {
         </div>
       </div>
 
-
-
       {/* Área de juego */}
       <div
         ref={playAreaRef}
@@ -786,14 +636,13 @@ export default function TargetSoloGame() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/10 to-black/30 pointer-events-none" />
 
         <div>
-       {/* Logo superior */}
-        <img
-          src={GAME_LOGO}
-          alt="Logo"
-          className="absolute top-3 left-1/2 -translate-x-1/2 h-10 sm:h-12 w-auto pointer-events-none select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
-        />
-   </div>
-
+          {/* Logo superior */}
+          <img
+            src={GAME_LOGO}
+            alt="Logo"
+            className="absolute top-3 left-1/2 -translate-x-1/2 h-10 sm:h-12 w-auto pointer-events-none select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
+          />
+        </div>
 
         {targets.map((t) => (
           <TargetVisual
