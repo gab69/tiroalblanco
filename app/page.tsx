@@ -789,53 +789,56 @@ export default function TargetSoloGame() {
       <div
         className={`${fontVars} font-[family-name:var(--font-body)] flex flex-col justify-center items-center min-h-screen p-6 text-center ${BRAND_BACKDROP}`}
       >
-        <div className="relative flex flex-col items-center animate-[fadeUp_0.6s_ease-out]">
+        <div className="relative w-full max-w-md animate-[fadeUp_0.6s_ease-out]">
+          {/* Tarjeta roja del menú */}
+          <div className="rounded-3xl bg-gradient-to-br from-[#C81E2C] to-[#7A0F1C] shadow-[0_25px_70px_-20px_rgba(0,0,0,0.7)] border border-white/15 p-8 sm:p-10 flex flex-col items-center">
 
-          <img
-            src={GAME_LOGO}
-            alt="Caja Huancayo"
-            className="w-full max-w-[400px] h-auto mb-8 drop-shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
-          />
+            <img
+              src={GAME_LOGO}
+              alt="Caja Huancayo"
+              className="w-full max-w-[320px] h-auto mb-8 drop-shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
+            />
 
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/25 px-4 py-1.5 text-xs font-semibold tracking-wide text-white mb-5 backdrop-blur-sm">
-            <IconCrosshair className="w-3.5 h-3.5" />
-            Modo jugador
-          </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/25 px-4 py-1.5 text-xs font-semibold tracking-wide text-white mb-5 backdrop-blur-sm">
+              <IconCrosshair className="w-3.5 h-3.5" />
+              Modo jugador
+            </span>
 
-          <h1 className="font-[family-name:var(--font-display)] text-4xl sm:text-5xl font-extrabold text-[#000] leading-tight mb-3 max-w-md">
-            Tiro al blanco
-          </h1>
+            <h1 className="font-[family-name:var(--font-display)] text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-3 max-w-md">
+              Tiro al blanco
+            </h1>
 
-          <p className="text-white/75 max-w-xs mb-10">
-            Encadena aciertos para multiplicar
-            tus puntos. La dificultad aumenta
-            cada 20 segundos.
-          </p>
+            <p className="text-white/75 max-w-xs mb-10">
+              Encadena aciertos para multiplicar
+              tus puntos. La dificultad aumenta
+              cada 20 segundos.
+            </p>
 
-          <button
-            onClick={startGame}
-            className="group inline-flex items-center gap-2 bg-white hover:bg-[#FFF5F5] active:scale-[0.98] px-8 py-3.5 rounded-full text-[#7A0F1C] font-bold text-lg shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-200"
-          >
-            <IconPlay className="w-5 h-5 text-[#C81E2C] group-hover:translate-x-0.5 transition-transform" />
-
-            Iniciar juego
-          </button>
-
-          <div className="flex items-center gap-6 mt-6">
             <button
-              onClick={toggleFullscreen}
-              className="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors"
+              onClick={startGame}
+              className="group inline-flex items-center gap-2 bg-white hover:bg-[#FFF5F5] active:scale-[0.98] px-8 py-3.5 rounded-full text-[#7A0F1C] font-bold text-lg shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)] transition-all duration-200"
             >
-              {isFullscreen ? (
-                <IconCollapse />
-              ) : (
-                <IconExpand />
-              )}
+              <IconPlay className="w-5 h-5 text-[#C81E2C] group-hover:translate-x-0.5 transition-transform" />
 
-              {isFullscreen
-                ? "Salir de pantalla completa"
-                : "Pantalla completa"}
+              Iniciar juego
             </button>
+
+            <div className="flex items-center gap-6 mt-6">
+              <button
+                onClick={toggleFullscreen}
+                className="inline-flex items-center gap-1.5 text-white/80 hover:text-white text-sm font-medium transition-colors"
+              >
+                {isFullscreen ? (
+                  <IconCollapse />
+                ) : (
+                  <IconExpand />
+                )}
+
+                {isFullscreen
+                  ? "Salir de pantalla completa"
+                  : "Pantalla completa"}
+              </button>
+            </div>
           </div>
         </div>
 
